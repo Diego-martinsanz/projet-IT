@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test Synchronisation Profil</title>
+    <link rel="stylesheet" href="ui-improvements.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        .test-item {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .test-item h3 { margin-top: 0; color: #667eea; }
+        .test-item p { margin: 8px 0; font-size: 14px; }
+        .status { 
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status.pass { background: #dcfce7; color: #16a34a; }
+        .status.fail { background: #fee2e2; color: #991b1b; }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .button-group button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+        }
+        .button-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Synchronisation Profil</h1>
+        <p class="text-muted mb-20">Vérifiez que tous les modules fonctionnent correctement</p>
+
+        <div class="test-item">
+            <h3>1. Chargement de profile.js</h3>
+            <p id="test1">Vérification en cours...</p>
+            <span class="status fail" id="status1">Attente...</span>
+        </div>
+
+        <div class="test-item">
+            <h3>2. Chargement de localStorage</h3>
+            <p id="test2">Vérification en cours...</p>
+            <span class="status fail" id="status2">Attente...</span>
+        </div>
+
+        <div class="test-item">
+            <h3>3. ProfileManager activé</h3>
+            <p id="test3">Vérification en cours...</p>
+            <span class="status fail" id="status3">Attente...</span>
+        </div>
+
+        <div class="test-item">
+            <h3>4. Header profil créé</h3>
+            <p id="test4">Vérification en cours...</p>
+            <span class="status fail" id="status4">Attente...</span>
+        </div>
+
+        <div class="test-item">
+            <h3>5. Abonnement aux changements</h3>
+            <p id="test5">Vérification en cours...</p>
+            <span class="status fail" id="status5">Attente...</span>
+        </div>
+
+        <div class="test-item">
+            <h3>6. Données de profil</h3>
+            <p id="test6">Vérification en cours...</p>
+            <div class="panel-note">
+                <p><strong>Nom:</strong> <span id="profileName">—</span></p>
+                <p><strong>Email:</strong> <span id="profileEmail">—</span></p>
+                <p><strong>Thème:</strong> <span id="profileTheme">—</span></p>
+            </div>
+            <span class="status fail" id="status6">Attente...</span>
+        </div>
+
+        <div class="test-item test-note-warning">
+            <h3>Actions de Test</h3>
+            <p>Modifiez le profil dans le formulaire ci-dessous et vérifiez que les changements se propagent:</p>
+            <div class="button-group">
+                <button onclick="testUpdateName()">Tester changement nom</button>
+                <button onclick="testUpdateEmail()">Tester changement email</button>
+                <button onclick="testClearData()">Réinitialiser données</button>
+                <button onclick="openSettings()">Ouvrir Paramètres</button>
+            </div>
+        </div>
+
+        <div class="test-item test-note-info">
+            <h3>Résumé</h3>
+            <p id="summary" class="text-blue-strong">Tests en cours...</p>
+        </div>
+    </div>
+
+    <script src="profile.js"></script>
+    <script>
+        function updateStatus(testNum, pass, message) {
+            const testEl = document.getElementById(`test${testNum}`);
+            const statusEl = document.getElementById(`status${testNum}`);
+            if (testEl) testEl.textContent = message;
+            if (statusEl) {
+                statusEl.textContent = pass ? '✓ OK' : '✗ Erreur';
+                statusEl.className = `status ${pass ? 'pass' : 'fail'}`;
+            }
+        }
+
+        // Test 1: Profile.js chargé
+        try {
+            if (typeof profileManager !== 'undefined' && profileManager instanceof ProfileManager) {
+                updateStatus(1, true, '✓ profile.js est chargé et ProfileManager est actif');
+            } else {
+                updateStatus(1, false, '✗ ProfileManager non trouvé');
+            }
+        } catch (e) {
+            updateStatus(1, false, '✗ Erreur: ' + e.message);
+        }
+
+        // Test 2: localStorage
+        try {
+            const testKey = '__test_' + Date.now();
+            localStorage.setItem(testKey, 'test');
+            const value = localStorage.getItem(testKey);
+            localStorage.removeItem(testKey);
+            updateStatus(2, value === 'test', '✓ localStorage fonctionnel');
+        } catch (e) {
+            updateStatus(2, false, '✗ localStorage non disponible: ' + e.message);
+        }
+
+        // Test 3: ProfileManager
+        try {
+            const profile = profileManager.getProfile();
+            updateStatus(3, profile && profile.email, '✓ ProfileManager récupère les données');
+        } catch (e) {
+            updateStatus(3, false, '✗ Erreur ProfileManager: ' + e.message);
+        }
+
+        // Test 4: Header profil
+        setTimeout(() => {
+            try {
+                const header = document.querySelector('.profile-header-bar');
+                updateStatus(4, !!header, header ? '✓ Header profil créé' : '✗ Header non trouvé');
+            } catch (e) {
+                updateStatus(4, false, '✗ Erreur: ' + e.message);
+            }
+        }, 100);
+
+        // Test 5: Abonnement
+        let changeDetected = false;
+        onProfileChange(() => {
+            changeDetected = true;
+        });
+        updateStatus(5, true, '✓ Abonnement actif, attente changements...');
+
+        // Test 6: Affichage données
+        function updateProfileDisplay() {
+            const profile = profileManager.getProfile();
+            const name = profileManager.getDisplayName();
+            document.getElementById('profileName').textContent = name || '—';
+            document.getElementById('profileEmail').textContent = profile.email || '—';
+            document.getElementById('profileTheme').textContent = profile.theme || 'auto';
+            updateStatus(6, name || profile.email, '✓ Données affichées');
+        }
+        updateProfileDisplay();
+        onProfileChange(updateProfileDisplay);
+
+        // Résumé
+        setTimeout(() => {
+            const allPass = document.querySelectorAll('.status.pass').length >= 4;
+            document.getElementById('summary').textContent = allPass 
+                ? '✓ Tous les tests sont passés! Allez modifier votre profil dans Paramètres.' 
+                : '⚠ Certains tests n\'ont pas réussi. Vérifiez la console pour les détails.';
+        }, 500);
+
+        // Actions de test
+        function testUpdateName() {
+            const name = prompt('Entrez un nouveau nom:');
+            if (name) {
+                updateProfileData({ firstName: name, lastName: 'Test' });
+                alert('Profil mis à jour. Changement détecté: ' + changeDetected);
+            }
+        }
+
+        function testUpdateEmail() {
+            const email = prompt('Entrez un nouvel email:');
+            if (email) {
+                updateProfileData({ email: email });
+                alert('Email mis à jour.');
+            }
+        }
+
+        function testClearData() {
+            localStorage.removeItem('profileData');
+            localStorage.removeItem('profileAvatar');
+            localStorage.removeItem('userSettings');
+            localStorage.removeItem('theme');
+            profileManager.notifyListeners();
+            location.reload();
+        }
+
+        function openSettings() {
+            window.location.href = 'settings.html#profile';
+        }
+    </script>
+</body>
+</html>

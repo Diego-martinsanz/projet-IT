@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Paramètres & Profil</title>
+    <link rel="stylesheet" href="css/ui-improvements.css">
+    <link rel="stylesheet" href="css/settings.css">
+</head></head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <div class="header">
+                <div class="title">
+                    <div class="icon-large">⚙️</div>
+                    <div>
+                        <h1>Paramètres & Profil</h1>
+                        <p>Gère ton compte, la sécurité et les préférences</p>
+                    </div>
+                </div>
+
+                <div class="header-controls">
+                    <button id="themeBtn" class="theme-toggle" title="Changer le thème">🌗 Thème</button>
+                    <button class="btn btn-ghost" onclick="goHome()">🏠 Accueil</button>
+                    <button class="btn btn-ghost" onclick="goStats()">📊 Stats</button>
+                </div>
+            </div>
+<div class="notice mt-10">
+              Astuce : la navigation rapide te permet de revenir à l'accueil, d'ouvrir Stepper ou de vérifier les stats en un clic.
+            </div>
+
+            <div class="content">
+                <nav class="nav" aria-label="Navigation paramètres">
+                    <button class="tab-btn active" onclick="switchTab(event,'profile')">👤 Profil</button>
+                    <button class="tab-btn" onclick="switchTab(event,'settings')">⚙️ Réglages</button>
+                    <button class="tab-btn" onclick="switchTab(event,'security')">🔒 Sécurité</button>
+                    <button class="tab-btn" onclick="switchTab(event,'appearance')">🎨 Apparence</button>
+                    <button class="tab-btn" onclick="switchTab(event,'about')">ℹ️ À propos</button>
+                </nav>
+
+                <main class="panel">
+                    <!-- PROFILE -->
+                    <section id="profile" class="panel-section active">
+                        <div class="profile-top">
+                            <div class="avatar" id="avatarPreview">
+                                <img src="https://via.placeholder.com/300x300.png?text=User" alt="avatar" id="avatarImg">
+                            </div>
+                            <div>
+                                <div class="font-bold">Diego Martinsanz</div>
+                                <div class="text-muted">diego@example.com</div>
+                                <div class="row">
+                                    <input type="file" id="avatarInput" accept="image/*" class="visually-hidden" />
+                                    <button class="btn btn-primary" onclick="document.getElementById('avatarInput').click()">Changer l'avatar</button>
+                                    <button class="btn btn-ghost" onclick="resetAvatar()">Réinitialiser</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="profileForm" onsubmit="return false;">
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label>Prénom</label>
+                                    <input id="firstName" type="text" value="Diego">
+                                </div>
+                                <div class="field">
+                                    <label>Nom</label>
+                                    <input id="lastName" type="text" value="Martinsanz">
+                                </div>
+                                <div class="field">
+                                    <label>Email</label>
+                                    <input id="email" type="email" value="diego@example.com">
+                                </div>
+                                <div class="field">
+                                    <label>Téléphone</label>
+                                    <input id="phone" type="tel" placeholder="+33 6 00 00 00 00">
+                                </div>
+                            </div>
+
+<div class="field mt-12">
+                                <label>Bio</label>
+                                <textarea id="bio" placeholder="Parle-nous un peu de toi..."></textarea>
+                            </div>
+
+                            <div class="actions">
+                                <button class="btn btn-primary" onclick="saveProfile()">Enregistrer</button>
+                                <button class="btn btn-ghost" onclick="restoreProfile()">Annuler</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- SETTINGS -->
+                    <section id="settings" class="panel-section">
+                        <h3>Préférences</h3>
+
+                        <div class="form-grid mt-12">
+                            <div class="field">
+                                <label>Langue</label>
+                                <select id="language">
+                                    <option value="fr">Français</option>
+                                    <option value="en">English</option>
+                                    <option value="es">Español</option>
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <label>Fuseau horaire</label>
+                                <select id="timezone">
+                                    <option value="Europe/Paris">Europe/Paris</option>
+                                    <option value="UTC">UTC</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-14">
+                            <label class="label-strong">Notifications</label>
+                            <div class="flex-col-gap">
+                                <label class="switch">
+                                    <input type="checkbox" id="emailNotif" checked>
+                                    <span class="track"><span class="knob"></span></span>
+                                    <span class="small-muted">E-mail</span>
+                                </label>
+
+                                <label class="switch">
+                                    <input type="checkbox" id="pushNotif" checked>
+                                    <span class="track"><span class="knob"></span></span>
+                                    <span class="small-muted">Push</span>
+                                </label>
+
+                                <label class="switch">
+                                    <input type="checkbox" id="marketing" >
+                                    <span class="track"><span class="knob"></span></span>
+                                    <span class="small-muted">Marketing</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn btn-primary" onclick="saveSettings()">Enregistrer</button>
+                            <button class="btn btn-ghost" onclick="restoreSettings()">Annuler</button>
+                        </div>
+                    </section>
+
+                    <!-- SECURITY -->
+                    <section id="security" class="panel-section">
+                        <h3>Sécurité</h3>
+
+                        <form id="securityForm" onsubmit="return false;">
+                            <div class="field mt-12">
+                                <label>Mot de passe actuel</label>
+                                <input id="currentPassword" type="password" autocomplete="current-password">
+                            </div>
+
+                            <div class="form-grid mt-8">
+                                <div class="field">
+                                    <label>Nouveau mot de passe</label>
+                                    <input id="newPassword" type="password" autocomplete="new-password" oninput="updateStrength()">
+                                </div>
+                                <div class="field">
+                                    <label>Confirmer mot de passe</label>
+                                    <input id="confirmPassword" type="password" autocomplete="new-password">
+                                </div>
+                            </div>
+
+                            <div class="mt-8">
+                                <div class="pw-strength" title="Force du mot de passe"><i id="pwBar"></i></div>
+                                <div id="pwMsg" class="small-muted mt-8">Utilise 8+ caractères avec chiffres & symboles.</div>
+                            </div>
+
+                            <div class="actions">
+                                <button class="btn btn-primary" onclick="updatePassword()">Mettre à jour</button>
+                                <button class="btn btn-ghost" onclick="clearPassword()">Annuler</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- APPEARANCE -->
+                    <section id="appearance" class="panel-section">
+                        <h3>Apparence</h3>
+                        <div class="mt-12">
+                            <label class="label-small-muted">Thème</label>
+                            <div class="flex-row-gap">
+                                <button class="btn btn-ghost" onclick="setTheme('light')">Clair</button>
+                                <button class="btn btn-ghost" onclick="setTheme('dark')">Sombre</button>
+                                <button class="btn btn-ghost" onclick="setTheme('auto')">Auto</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ABOUT -->
+                    <section id="about" class="panel-section">
+                        <h3>À propos</h3>
+                        <p class="small-muted mt-8">Version prototype — Interface améliorée pour la gestion du profil et des paramètres.</p>
+                        <div class="flex-wrap-gap mt-12">
+                            <button class="btn btn-ghost" onclick="exportSettings()">Exporter les paramètres</button>
+                            <button class="btn btn-ghost" onclick="importSettings()">Importer</button>
+                            <button class="btn btn-ghost" onclick="downloadSketch()">Télécharger Capteur_ILS.ino</button>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert" id="toast"></div>
+
+    <script src="profile.js"></script>
+    <script>
+        // Organisation: handlers for tab, avatar preview, localStorage persistence, password strength, theme
+        const toast = document.getElementById('toast');
+
+        function showToast(msg, timeout=2500){
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(()=> toast.style.display = 'none', timeout);
+        }
+
+        function switchTab(e, id){
+            document.querySelectorAll('.panel-section').forEach(s=>s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+        }
+
+        function goHome(){ window.location.href = 'home.html' }
+        function goStats(){ window.location.href = 'stats.html' }
+
+        // Avatar preview + storage
+        const avatarInput = document.getElementById('avatarInput');
+        const avatarImg = document.getElementById('avatarImg');
+
+        avatarInput.addEventListener('change', (ev)=>{
+            const f = ev.target.files && ev.target.files[0];
+            if(!f) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                avatarImg.src = reader.result;
+                updateAvatar(reader.result);
+                showToast('Avatar mis à jour');
+            };
+            reader.readAsDataURL(f);
+        });
+
+        function resetAvatar(){
+            avatarImg.src = 'https://via.placeholder.com/300x300.png?text=User';
+            localStorage.removeItem('profileAvatar');
+            profileManager.notifyListeners();
+            showToast('Avatar réinitialisé');
+        }
+
+        // Profile save / restore
+        function saveProfile(){
+            const profile = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                bio: document.getElementById('bio').value,
+                updated: new Date().toISOString()
+            };
+            localStorage.setItem('profileData', JSON.stringify(profile));
+            profileManager.notifyListeners();
+            showToast('Profil enregistré');
+        }
+
+        function restoreProfile(){
+            loadProfile();
+            showToast('Modifications annulées');
+        }
+
+        function loadProfile(){
+            const p = JSON.parse(localStorage.getItem('profileData') || '{}');
+            if(p.firstName) document.getElementById('firstName').value = p.firstName;
+            if(p.lastName) document.getElementById('lastName').value = p.lastName;
+            if(p.email) document.getElementById('email').value = p.email;
+            if(p.phone) document.getElementById('phone').value = p.phone;
+            if(p.bio) document.getElementById('bio').value = p.bio;
+            const av = localStorage.getItem('profileAvatar');
+            if(av) avatarImg.src = av;
+        }
+
+        // Settings
+        function saveSettings(){
+            const s = {
+                language: document.getElementById('language').value,
+                timezone: document.getElementById('timezone').value,
+                emailNotif: document.getElementById('emailNotif').checked,
+                pushNotif: document.getElementById('pushNotif').checked,
+                marketing: document.getElementById('marketing').checked
+            };
+            localStorage.setItem('userSettings', JSON.stringify(s));
+            profileManager.notifyListeners();
+            showToast('Paramètres enregistrés');
+        }
+        function restoreSettings(){ loadSettings(); showToast('Paramètres restaurés'); }
+        function loadSettings(){
+            const s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+            if(s.language) document.getElementById('language').value = s.language;
+            if(s.timezone) document.getElementById('timezone').value = s.timezone;
+            if(typeof s.emailNotif === 'boolean') document.getElementById('emailNotif').checked = s.emailNotif;
+            if(typeof s.pushNotif === 'boolean') document.getElementById('pushNotif').checked = s.pushNotif;
+            if(typeof s.marketing === 'boolean') document.getElementById('marketing').checked = s.marketing;
+        }
+
+        // Security: password strength
+        function scorePassword(p){
+            let score = 0;
+            if(!p) return 0;
+            if(p.length >= 8) score += 1;
+            if(/[A-Z]/.test(p)) score += 1;
+            if(/[0-9]/.test(p)) score += 1;
+            if(/[^A-Za-z0-9]/.test(p)) score += 1;
+            if(p.length >= 12) score += 1;
+            return score;
+        }
+        function updateStrength(){
+            const p = document.getElementById('newPassword').value;
+            const s = scorePassword(p);
+            const bar = document.getElementById('pwBar');
+            const percent = Math.min(100, s * 20);
+            bar.style.width = percent + '%';
+            const msg = document.getElementById('pwMsg');
+            if(s <= 2) { msg.textContent = 'Faible'; msg.style.color = 'var(--danger)'; }
+            else if(s === 3) { msg.textContent = 'Moyen'; msg.style.color = 'orange'; }
+            else { msg.textContent = 'Fort'; msg.style.color = 'var(--success)'; }
+        }
+
+        function updatePassword(){
+            const current = document.getElementById('currentPassword').value;
+            const newP = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            if(!current || !newP || !confirm){ showToast('Remplis tous les champs', 2500); return; }
+            if(newP !== confirm){ showToast('Les mots de passe ne correspondent pas',2500); return; }
+            if(scorePassword(newP) < 3){ showToast('Mot de passe trop faible',2500); return; }
+            // Ici -> appeler backend dans une app réelle
+            localStorage.setItem('lastPasswordStrength', scorePassword(newP) >= 4 ? 'Fort' : 'Moyen');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            updateStrength();
+            showToast('Mot de passe mis à jour');
+        }
+        function clearPassword(){
+            document.getElementById('currentPassword').value='';
+            document.getElementById('newPassword').value='';
+            document.getElementById('confirmPassword').value='';
+            updateStrength();
+            showToast('Annulé');
+        }
+
+        // Theme management
+        const themeBtn = document.getElementById('themeBtn');
+        function applyTheme(t){
+            if(t === 'auto'){
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme','auto');
+            } else {
+                document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+                localStorage.setItem('theme', t);
+            }
+            profileManager.notifyListeners();
+        }
+        function setTheme(t){ applyTheme(t); showToast('Thème changé'); }
+
+        themeBtn.addEventListener('click', ()=>{
+            const current = localStorage.getItem('theme') || 'auto';
+            const next = current === 'auto' ? 'dark' : current === 'dark' ? 'light' : 'auto';
+            applyTheme(next);
+            showToast('Thème: ' + next);
+        });
+
+        // Import / Export simple
+        function exportSettings(){
+            const data = {
+                profile: JSON.parse(localStorage.getItem('profileData') || '{}'),
+                settings: JSON.parse(localStorage.getItem('userSettings') || '{}'),
+                avatar: localStorage.getItem('profileAvatar') || null,
+                theme: localStorage.getItem('theme') || 'auto'
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'settings.json'; a.click();
+            URL.revokeObjectURL(url);
+        }
+        function importSettings(){
+            const f = document.createElement('input');
+            f.type='file'; f.accept='application/json';
+            f.onchange = e => {
+                const file = e.target.files[0];
+                if(!file) return;
+                const r = new FileReader();
+                r.onload = () => {
+                    try{
+                        const json = JSON.parse(r.result);
+                        if(json.profile) localStorage.setItem('profileData', JSON.stringify(json.profile));
+                        if(json.settings) localStorage.setItem('userSettings', JSON.stringify(json.settings));
+                        if(json.avatar) localStorage.setItem('profileAvatar', json.avatar);
+                        if(json.theme) localStorage.setItem('theme', json.theme);
+                        loadAll();
+                        profileManager.notifyListeners();
+                        showToast('Import réussi');
+                    }catch(er){ showToast('Fichier invalide'); }
+                };
+                r.readAsText(file);
+            };
+            f.click();
+        }
+
+        function downloadSketch(){
+            const sketch = localStorage.getItem('arduinoSketch') || `#define MAGNETIC_SWITCH 2
+#define LED 13
+
+#include <Arduino.h>
+
+volatile bool pulseFlag = false;
+volatile unsigned long lastIsrMillis = 0;
+unsigned long lastValidPulse = 0;
+const unsigned long debounceMs = 50;
+unsigned long stepCount = 0;
+unsigned long ledOffAt = 0;
+const unsigned long heartbeatInterval = 10000;
+unsigned long lastHeartbeat = 0;
+bool useInterrupt = false;
+int lastSwitchState = HIGH;
+
+void handleInterrupt() {
+  unsigned long now = millis();
+  if (now - lastIsrMillis > 10) {
+    lastIsrMillis = now;
+    pulseFlag = true;
+  }
+}
+
+void flashLed(unsigned long ms = 120) {
+  digitalWrite(LED, HIGH);
+  ledOffAt = millis() + ms;
+}
+
+void countPulse() {
+  unsigned long now = millis();
+  if (now - lastValidPulse >= debounceMs) {
+    lastValidPulse = now;
+    stepCount++;
+    Serial.println("PULSE");
+    Serial.print("STEP:");
+    Serial.println(stepCount);
+    flashLed(120);
+  }
+}
+
+void processSerialCommands() {
+  if (!Serial.available()) return;
+  String cmd = Serial.readStringUntil('\n');
+  cmd.trim();
+  if (cmd.equalsIgnoreCase("RESET")) {
+    stepCount = 0;
+    Serial.println("STEP:0");
+    Serial.println("MSG:RESET OK");
+  } else if (cmd.equalsIgnoreCase("GET")) {
+    Serial.print("TOTAL:");
+    Serial.println(stepCount);
+  } else {
+    Serial.print("MSG:UNKNOWN ");
+    Serial.println(cmd);
+  }
+}
+
+void setup() {
+  pinMode(MAGNETIC_SWITCH, INPUT_PULLUP);
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
+  Serial.begin(9600);
+  delay(100);
+  if (digitalPinToInterrupt(MAGNETIC_SWITCH) != NOT_AN_INTERRUPT) {
+    attachInterrupt(digitalPinToInterrupt(MAGNETIC_SWITCH), handleInterrupt, CHANGE);
+    useInterrupt = true;
+  } else {
+    useInterrupt = false;
+  }
+  lastSwitchState = digitalRead(MAGNETIC_SWITCH);
+  lastHeartbeat = millis();
+}
+
+void loop() {
+  if (useInterrupt) {
+    if (pulseFlag) {
+      pulseFlag = false;
+      countPulse();
+    }
+  } else {
+    int state = digitalRead(MAGNETIC_SWITCH);
+    if (state != lastSwitchState) {
+      lastSwitchState = state;
+      if (state == LOW) {
+        countPulse();
+      }
+    }
+  }
+  if (ledOffAt && millis() >= ledOffAt) {
+    digitalWrite(LED, LOW);
+    ledOffAt = 0;
+  }
+  if (millis() - lastHeartbeat >= heartbeatInterval) {
+    lastHeartbeat = millis();
+    Serial.print("TOTAL:");
+    Serial.println(stepCount);
+  }
+  processSerialCommands();
+  delay(10);
+}`;
+            const blob = new Blob([sketch], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Capteur_ILS.ino';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Capteur_ILS.ino téléchargé');
+        }
+
+        function loadAll(){
+            loadProfile();
+            loadSettings();
+            const t = localStorage.getItem('theme') || 'auto';
+            if(t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+        }
+
+        // Create profile header
+        createProfileHeader();
+        
+        // Subscribe to profile changes
+        onProfileChange(() => {
+            loadProfile();
+            loadSettings();
+            const avatar = document.querySelector('.avatar img');
+            if(avatar) avatar.classList.add('profile-update-pulse');
+            setTimeout(() => avatar?.classList.remove('profile-update-pulse'), 600);
+        });
+
+        // init
+        loadAll();
+    </script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stats — Projet Stepper</title>
+  <link rel="stylesheet" href="css/ui-improvements.css">
+  <link rel="stylesheet" href="css/stats.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <div class="title">
+          <div class="icon-xlarge">📊</div>
+          <div>
+            <h1>Stats</h1>
+            <p>Vue d’ensemble des performances et des objets Arduino.</p>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="openHome" class="btn btn-ghost">🏠 Accueil</button>
+          <button id="openStepper" class="btn btn-ghost">🔀 Stepper</button>
+          <button id="openSettings" class="btn btn-ghost">⚙️ Paramètres</button>
+          <button id="openAbout" class="btn btn-ghost">ℹ️ À propos</button>
+          <button id="openGuide" class="btn btn-ghost">📘 Guide</button>
+        </div>
+      </div>
+      <div class="content">
+        <aside class="profile">
+          <div class="flex-center">
+            <div class="avatar"><img id="statsAvatar" src="https://via.placeholder.com/300x300.png?text=User" alt="avatar"></div>
+            <div class="meta">
+              <div class="name" id="statsName">Utilisateur</div>
+              <div class="muted" id="statsEmail">email@example.com</div>
+              <div class="muted" id="statsUpdated">Dernière MAJ: —</div>
+            </div>
+          </div>
+          <div class="kv"><div>Thème</div><div id="statsTheme">auto</div></div>
+          <div class="kv"><div>Langue</div><div id="statsLang">fr</div></div>
+          <div class="kv"><div>Fuseau</div><div id="statsTZ">Europe/Paris</div></div>
+          <div class="kv"><div>Sketch chargé</div><div id="statsSketch"><span class="badge">Non</span></div></div>
+          <div class="help">Les statistiques proviennent des données enregistrées localement. Ouvrez le tableau Stepper pour mettre à jour les chiffres.</div>
+        </aside>
+        <main class="panel">
+          <div class="help">Actions rapides : importez un sketch sur la page d’accueil, puis revenez ici pour voir les résultats.</div>
+          <div class="stat-grid">
+            <div class="card-block">
+              <div class="metric" id="totalSteps">0</div>
+              <div class="metric-label">Total de pas détectés</div>
+            </div>
+            <div class="card-block">
+              <div class="metric" id="milestonesReached">0</div>
+              <div class="metric-label">Milestones atteints</div>
+            </div>
+            <div class="card-block">
+              <div class="metric" id="estimateMinutes">0</div>
+              <div class="metric-label">Minutes estimées (@ 60 pas/min)</div>
+            </div>
+            <div class="card-block">
+              <div class="metric" id="sketchStatus">0</div>
+              <div class="metric-label">Lignes de sketch Arduino</div>
+            </div>
+          </div>
+          <div class="mt-18">
+            <h2 class="line-title">Détails utiles</h2>
+            <div class="kv"><div>Dernière import .ino</div><div id="sketchName">Aucun</div></div>
+            <div class="kv"><div>Dernière connexion</div><div id="lastSync">—</div></div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="profile.js"></script>
+  <script>
+    const toast = document.getElementById('toast');
+    function showToast(msg, t=2200){ toast.textContent = msg; toast.style.display='block'; setTimeout(()=>toast.style.display='none', t); }
+    const statsAvatar = document.getElementById('statsAvatar');
+    const statsName = document.getElementById('statsName');
+    const statsEmail = document.getElementById('statsEmail');
+    const statsUpdated = document.getElementById('statsUpdated');
+    const statsTheme = document.getElementById('statsTheme');
+    const statsLang = document.getElementById('statsLang');
+    const statsTZ = document.getElementById('statsTZ');
+    const statsSketch = document.getElementById('statsSketch');
+    const totalSteps = document.getElementById('totalSteps');
+    const milestonesReached = document.getElementById('milestonesReached');
+    const estimateMinutes = document.getElementById('estimateMinutes');
+    const sketchStatus = document.getElementById('sketchStatus');
+    const sketchName = document.getElementById('sketchName');
+    const lastSync = document.getElementById('lastSync');
+    document.getElementById('openHome').addEventListener('click', ()=> location.href='home.html');
+    document.getElementById('openStepper').addEventListener('click', ()=> location.href='stepper.html');
+    document.getElementById('openSettings').addEventListener('click', ()=> location.href='settings.html');
+    document.getElementById('openAbout').addEventListener('click', ()=> location.href='about.html');
+    document.getElementById('openGuide').addEventListener('click', ()=> location.href='guide.html');
+    function loadStats(){
+      const p = JSON.parse(localStorage.getItem('profileData')||'{}');
+      const s = JSON.parse(localStorage.getItem('userSettings')||'{}');
+      const sketch = localStorage.getItem('arduinoSketch');
+      const stepCount = parseInt(localStorage.getItem('stepperCount')||'0',10) || 0;
+      const name = ((p.firstName||'') + ' ' + (p.lastName||'')).trim() || 'Utilisateur';
+      statsName.textContent = name;
+      statsEmail.textContent = p.email || 'email@example.com';
+      statsUpdated.textContent = p.updated ? ('Dernière MAJ: ' + new Date(p.updated).toLocaleString()) : 'Dernière MAJ: —';
+      statsTheme.textContent = localStorage.getItem('theme') || 'auto';
+      statsLang.textContent = s.language || 'fr';
+      statsTZ.textContent = s.timezone || 'Europe/Paris';
+      const sketchLoaded = !!sketch;
+      statsSketch.innerHTML = sketchLoaded ? '<span class="badge">Oui</span>' : '<span class="badge">Non</span>';
+      totalSteps.textContent = stepCount;
+      const reached = ['10','50','100'].filter(n=> stepCount >= parseInt(n,10)).length;
+      milestonesReached.textContent = reached;
+      estimateMinutes.textContent = Math.round(stepCount / 60);
+      sketchStatus.textContent = sketchLoaded ? sketch.split(/\r?\n/).length : 0;
+      sketchName.textContent = sketchLoaded ? 'Capteur_ILS.ino' : 'Aucun';
+      lastSync.textContent = new Date().toLocaleTimeString();
+    }
+    
+    // Apply theme
+    (function init(){
+      const t = localStorage.getItem('theme') || 'auto';
+      if(t === 'auto') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light');
+    })();
+    
+    // Create profile header
+    createProfileHeader();
+    
+    // Subscribe to profile changes
+    onProfileChange(() => {
+      loadStats();
+      const avatar = document.querySelector('.avatar img');
+      if(avatar) avatar.classList.add('profile-update-pulse');
+      setTimeout(() => avatar?.classList.remove('profile-update-pulse'), 600);
+    });
+    
+    setInterval(loadStats, 900);
+    loadStats();
+  </script>
+</body>
+</html>

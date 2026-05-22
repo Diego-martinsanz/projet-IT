@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Guide d'utilisation — Site Ludique & Arduino</title>
+    <link rel="stylesheet" href="css/ui-improvements.css">
+    <link rel="stylesheet" href="css/guide.css">
+</head>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <div class="header">
+                <div class="title">
+                    <div class="icon-xlarge">📘</div>
+                    <div>
+                        <h1>Guide d'utilisation</h1>
+                        <p>Raccourci : Arduino → téléversement → site ludique</p>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="themeBtn" class="btn btn-ghost">🌗 Thème</button>
+                    <button id="openHome" class="btn btn-ghost">🏠 Accueil</button>
+                    <button id="openSettings" class="btn btn-ghost">⚙️ Paramètres</button>
+                    <button id="openStepper" class="btn btn-ghost">🔀 Stepper</button>
+                    <button id="openStats" class="btn btn-ghost">📊 Stats</button>
+                    <button id="exportBtn" class="btn btn-ghost">⬇️ Export</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <aside class="profile">
+                    <div class="flex-center">
+                        <div class="avatar" id="guideAvatar"><img id="guideAvatarImg" src="https://via.placeholder.com/300x300.png?text=User" alt="avatar"></div>
+                        <div class="meta">
+                            <div class="name" id="guideName">Utilisateur</div>
+                            <div class="email" id="guideEmail">email@example.com</div>
+                            <div class="muted" id="guideUpdated">Dernière MAJ: —</div>
+                        </div>
+                    </div>
+
+                    <div class="kv mt-12"><div>Version</div><div class="badge" id="guideVersion">v0.2</div></div>
+                    <div class="kv"><div>Guide</div><div class="muted">Rapide & pratique</div></div>
+
+                    <div class="mt-12">
+                        <div class="font-bold mb-6">Raccourcis</div>
+                        <div class="flex-wrap-gap">
+                            <button id="btnGotoSettings" class="btn btn-ghost">Paramètres</button>
+                            <button id="btnOpenHome" class="btn btn-ghost">Aller à Accueil</button>
+                            <button id="btnExport" class="btn btn-primary">Exporter</button>
+                        </div>
+                    </div>
+
+                    <div class="note">Les exemples sont visibles et copiable — collez-les dans l'Arduino IDE.</div>
+                    <div class="note note-info">Astuce : copiez le code, ouvrez l'IDE Arduino, puis téléversez directement sur votre carte.</div>
+                </aside>
+
+                <main class="panel">
+                    <section>
+                        <h2>Avant de commencer</h2>
+                        <ul class="muted">
+                            <li>Matériel : Arduino (Uno/Nano), câble USB. Sur Windows vérifiez le driver si nécessaire.</li>
+                            <li>Logiciels : Arduino IDE ou éditeur en ligne + navigateur moderne (Chrome/Edge recommandé).</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>1. Connexion</h2>
+                        <ol class="muted">
+                            <li>Branchez l'Arduino via USB.</li>
+                            <li>Ouvrez le gestionnaire de port (Tools → Port) dans l'IDE.</li>
+                        </ol>
+                        <div class="note">Astuce : sur macOS/Linux les ports commencent par /dev/tty.* ou /dev/ttyUSB*.</div>
+                    </section>
+
+                    <section>
+                        <h2>2. Préparer et téléverser un programme</h2>
+                        <p class="muted">Exemple minimal : faire clignoter la LED intégrée (LED_BUILTIN). Le code est affiché en noir pour meilleure lisibilité.</p>
+
+                        <!-- code visible en noir -->
+                        <pre class="arduino"><code id="exampleCode">// Exemple : clignotement simple
+void setup() {
+    pinMode(LED_BUILTIN, OUTPUT);
+}
+void loop() {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+}</code></pre>
+                        <button id="copyExampleBtn" class="btn btn-ghost btn-mb">📋 Copier l'exemple</button>
+
+                        <ol class="muted">
+                            <li>Collez ce code dans l'Arduino IDE, sélectionnez la carte et le port.</li>
+                            <li>Cliquez sur "Upload" pour téléverser. Ouvrez le Serial Monitor si besoin.</li>
+                        </ol>
+                    </section>
+
+                    <section>
+                        <h2>3. Utiliser le site</h2>
+                        <div class="muted">
+                            <p>Le site propose un tableau de bord, un guide d'ateliers, et un tableau Stepper pour lire les impulsions via Web Serial.</p>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h2>Dépannage rapide</h2>
+                        <ul class="muted">
+                            <li>Upload échoue : vérifiez la carte et le port, changez de câble.</li>
+                            <li>Site ne détecte pas l'Arduino : autorisez l'accès au port série et rafraîchissez la page.</li>
+                        </ul>
+                    </section>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="profile.js"></script>
+    <script>
+        // small script: navigation, load profile, theme cycle
+        const toast = document.getElementById('toast');
+        function showToast(msg, t=2000){ toast.textContent = msg; toast.style.display='block'; setTimeout(()=>toast.style.display='none', t); }
+
+        // nav buttons
+        document.getElementById('openHome').addEventListener('click', ()=> location.href='home.html');
+        document.getElementById('openSettings').addEventListener('click', ()=> location.href='settings.html');
+        document.getElementById('openStepper').addEventListener('click', ()=> location.href='stepper.html');
+        document.getElementById('openStats').addEventListener('click', ()=> location.href='stats.html');
+        document.getElementById('btnGotoSettings').addEventListener('click', ()=> location.href='settings.html');
+        document.getElementById('btnOpenHome').addEventListener('click', ()=> location.href='home.html');
+        document.getElementById('btnExport').addEventListener('click', ()=> {
+            const data = {
+                profile: JSON.parse(localStorage.getItem('profileData')||'{}'),
+                settings: JSON.parse(localStorage.getItem('userSettings')||'{}'),
+                avatar: localStorage.getItem('profileAvatar') || null,
+                theme: localStorage.getItem('theme') || 'auto'
+            };
+            const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href=url; a.download='guide-export.json'; a.click();
+            URL.revokeObjectURL(url);
+            showToast('Export démarré');
+        });
+
+        // theme cycle
+        document.getElementById('themeBtn').addEventListener('click', ()=>{
+            const cur = localStorage.getItem('theme') || 'auto';
+            const next = cur === 'auto' ? 'dark' : cur === 'dark' ? 'light' : 'auto';
+            if(next === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', next === 'dark' ? 'dark' : 'light');
+            localStorage.setItem('theme', next);
+            showToast('Thème: ' + next);
+        });
+
+        document.getElementById('copyExampleBtn').addEventListener('click', ()=>{
+            const codeEl = document.getElementById('exampleCode');
+            if(!codeEl) return;
+            navigator.clipboard.writeText(codeEl.textContent.trim()).then(()=> showToast('Code copié dans le presse-papiers')).catch(()=> showToast('Impossible de copier'));
+        });
+
+        // load profile info to keep pages consistent
+        function loadGuideProfile(){
+            const p = JSON.parse(localStorage.getItem('profileData') || '{}');
+            const av = localStorage.getItem('profileAvatar');
+            const s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+            if(av) document.getElementById('guideAvatarImg').src = av;
+            if(p.firstName || p.lastName) document.getElementById('guideName').textContent = ((p.firstName||'') + ' ' + (p.lastName||'')).trim();
+            if(p.email) document.getElementById('guideEmail').textContent = p.email;
+            document.getElementById('guideUpdated').textContent = p.updated ? ('Dernière MAJ: ' + new Date(p.updated).toLocaleString()) : 'Dernière MAJ: —';
+            document.getElementById('guideVersion').textContent = 'v0.2';
+        }
+
+        // Apply theme
+        (function init(){
+            const t = localStorage.getItem('theme') || 'auto';
+            if(t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light');
+        })();
+        
+        // Create profile header
+        createProfileHeader();
+        
+        // Subscribe to profile changes
+        onProfileChange(() => {
+            loadGuideProfile();
+            const avatar = document.querySelector('.avatar img');
+            if(avatar) avatar.classList.add('profile-update-pulse');
+            setTimeout(() => avatar?.classList.remove('profile-update-pulse'), 600);
+        });
+
+        let lastSnap = '';
+        function snap(){ return JSON.stringify({ p: localStorage.getItem('profileData'), s: localStorage.getItem('userSettings'), a: localStorage.getItem('profileAvatar'), t: localStorage.getItem('theme') });}
+        setInterval(()=>{ const s = snap(); if(s !== lastSnap){ lastSnap = s; loadGuideProfile(); } }, 900);
+
+        loadGuideProfile();
+    </script>
+</body>
+</html>

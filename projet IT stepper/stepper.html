@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Stepper — Tableau de bord</title>
+    <link rel="stylesheet" href="css/ui-improvements.css">
+    <link rel="stylesheet" href="css/stepper.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <header>
+        <div class="left">
+          <div class="icon-large">🔀</div>
+            <h1>Stepper — Dashboard</h1>
+            <p>Compteur ILS synchronisé · Amusant & informatif</p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="openHome" class="btn btn-ghost">🏠 Accueil</button>
+          <button id="openSettings" class="btn btn-ghost">⚙️ Paramètres</button>
+          <button id="openStats" class="btn btn-ghost">📊 Stats</button>
+          <button id="openStepper" class="btn btn-accent">🔁 Stepper</button>
+        </div>
+      </header>
+      <div class="help-banner">Démarrage rapide : 1) Connectez votre Arduino 2) Importez la configuration ou le sketch 3) Envoyez le sketch au port série.</div>
+      <div class="content">
+        <aside class="profile">
+          <div class="flex-center">
+            <div class="avatar" id="avatarWrap"><img id="avatarImg" src="https://via.placeholder.com/300x300.png?text=User" alt="avatar"></div>
+            <div class="meta">
+              <div class="name" id="nameLabel">Utilisateur</div>
+              <div class="email" id="emailLabel">email@example.com</div>
+              <div class="tiny" id="updatedLabel">Dernière MAJ: —</div>
+            </div>
+          </div>
+
+          <div class="kv mt-12"><div>Thème</div><div id="themeLabel" class="tiny">auto</div></div>
+          <div class="kv"><div>Langue</div><div id="langLabel" class="tiny">fr</div></div>
+          <div class="kv"><div>Fuseau</div><div id="tzLabel" class="tiny">Europe/Paris</div></div>
+
+          <div class="mt-12">
+            <div class="font-bold mb-6">Raccourcis</div>
+            <div class="flex-wrap-gap">
+              <button id="btnGotoSettings" class="btn btn-ghost">Paramètres</button>
+              <button id="btnResetLocal" class="btn btn-ghost">Reset local</button>
+              <button id="btnConfetti" class="btn btn-primary">Fêter 🎉</button>
+            </div>
+          </div>
+
+          <div class="card card-spaced" id="milestones">
+            <div class="font-bold">Milestones</div>
+            <div class="tiny mt-8">Atteignez 10, 50, 100 pas pour débloquer récompenses.</div>
+            <div class="flex-wrap-gap mt-8">
+              <div class="badge" id="ms10">🏅 10</div>
+              <div class="badge" id="ms50">🏆 50</div>
+              <div class="badge" id="ms100">🚀 100</div>
+            </div>
+          </div>
+        </aside>
+
+        <main class="panel">
+          <div class="status-row">
+            <div class="status-block">
+              <div class="muted">État du port</div>
+              <div id="status">Déconnecté</div>
+            </div>
+            <div class="status-block text-right">
+              <div class="muted">Dernière impulsion</div>
+              <div id="lastPulse">—</div>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="big-count" id="stepCount">0</div>
+          <div class="muted text-center">Nombre de pas détectés (ILS)</div>
+
+          <div class="meter mt-12"><i id="meterBar"></i></div>
+
+          <div class="controls-wire">
+            <button id="connectBtn" class="btn btn-primary">Connecter</button>
+            <button id="disconnectBtn" class="btn btn-ghost" disabled>Déconnecter</button>
+            <button id="resetLocalBtn" class="btn btn-ghost">Réinitialiser local</button>
+            <button id="resetRemoteBtn" class="btn btn-ghost">Réinitialiser compteur Arduino</button>
+            <div class="flex-right">
+              <button id="exportBtn" class="btn btn-ghost">⬇️ Export</button>
+              <button id="importBtn" class="btn btn-ghost">📁 Importer config / sketch</button>
+              <button id="downloadSketchBtn" class="btn btn-ghost">💾 Télécharger .ino</button>
+              <button id="uploadSketchBtn" class="btn btn-primary">🧩 Envoyer sur Arduino</button>
+            </div>
+          </div>
+
+          <div class="mt-12">
+            <label class="tiny">Console</label>
+            <textarea id="log" readonly></textarea>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <div class="confetti" id="confettiRoot"></div>
+
+  <script>
+    // --- state ---
+    let port = null;
+    let reader = null;
+    let keepReading = false;
+    let stepCount = 0;
+
+    // --- DOM ---
+    const statusEl = document.getElementById('status');
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const stepCountEl = document.getElementById('stepCount');
+    const logEl = document.getElementById('log');
+    const lastPulseEl = document.getElementById('lastPulse');
+    const resetLocalBtn = document.getElementById('resetLocalBtn');
+    const resetRemoteBtn = document.getElementById('resetRemoteBtn');
+    const meterBar = document.getElementById('meterBar');
+    const toast = document.getElementById('toast');
+    const confettiRoot = document.getElementById('confettiRoot');
+
+    // profile UI
+    const avatarImg = document.getElementById('avatarImg');
+    const nameLabel = document.getElementById('nameLabel');
+    const emailLabel = document.getElementById('emailLabel');
+    const updatedLabel = document.getElementById('updatedLabel');
+    const themeLabel = document.getElementById('themeLabel');
+    const langLabel = document.getElementById('langLabel');
+    const tzLabel = document.getElementById('tzLabel');
+
+    // buttons
+    document.getElementById('openHome').addEventListener('click', ()=> location.href='home.html');
+    document.getElementById('openSettings').addEventListener('click', ()=> location.href='settings.html');
+    document.getElementById('openStats').addEventListener('click', ()=> location.href='stats.html');
+    document.getElementById('openStepper').addEventListener('click', ()=> location.reload());
+    document.getElementById('btnGotoSettings').addEventListener('click', ()=> location.href='settings.html');
+    document.getElementById('btnResetLocal').addEventListener('click', ()=> { stepCount=0; updateCount(); log('Reset local via profil'); showToast('Reset local'); });
+    document.getElementById('btnConfetti').addEventListener('click', ()=> { burstConfetti(); showToast('Fête ! 🎉'); });
+
+    // load profile & settings from localStorage (keeps UI consistent with settings.html)
+    function loadProfileUI(){
+      const p = JSON.parse(localStorage.getItem('profileData') || '{}');
+      const s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+      const av = localStorage.getItem('profileAvatar');
+      const theme = localStorage.getItem('theme') || 'auto';
+      if(av) avatarImg.src = av;
+      if(p.firstName || p.lastName) nameLabel.textContent = ((p.firstName||'') + ' ' + (p.lastName||'')).trim() || 'Utilisateur';
+      if(p.email) emailLabel.textContent = p.email;
+      updatedLabel.textContent = p.updated ? ('Dernière MAJ: ' + new Date(p.updated).toLocaleString()) : 'Dernière MAJ: —';
+      themeLabel.textContent = theme;
+      langLabel.textContent = s.language || 'fr';
+      tzLabel.textContent = s.timezone || 'Europe/Paris';
+    }
+
+    // toast
+    function showToast(msg, t=2000){ toast.textContent = msg; toast.style.display='block'; setTimeout(()=> toast.style.display='none', t); }
+
+    // log
+    function log(msg){ const t=new Date().toLocaleTimeString(); logEl.value = `[${t}] ${msg}\n` + logEl.value; }
+
+    // UI helpers
+    function setStatus(s){ statusEl.textContent = s; }
+    function updateCount(){
+      stepCountEl.textContent = stepCount;
+      // little pulse animation
+      stepCountEl.classList.add('pulse');
+      setTimeout(()=> stepCountEl.classList.remove('pulse'), 180);
+      // meter shows progress to 1000 for fun
+      const pct = Math.min(100, Math.round((stepCount % 1000) / 10));
+      meterBar.style.width = pct + '%';
+      checkMilestones();
+      // store last local value
+      localStorage.setItem('stepperCount', String(stepCount));
+    }
+
+    // milestone checks
+    function checkMilestones(){
+      const milestones = [10,50,100];
+      milestones.forEach(m=>{
+        const el = document.getElementById('ms'+m);
+        if(stepCount >= m && !el.classList.contains('done')) {
+          el.classList.add('done');
+          el.style.background = 'linear-gradient(90deg,#ffd54a,#ff8a65)';
+          el.style.color = '#111';
+          showToast('Milestone atteint: ' + m + ' pas 🎉', 3000);
+          burstConfetti();
+        }
+      });
+    }
+
+    // confetti simple burst
+    function burstConfetti(count=24, spread=60, lifetime=1700){
+      const colors = ['#ff4d6d','#ffd54a','#6ce3b8','#6ea8fe','#b085ff'];
+      for(let i=0;i<count;i++){
+        const s = document.createElement('span');
+        s.className = 'confetti-particle';
+        s.style.left = (50 + (Math.random()*spread-spread/2)) + '%';
+        s.style.background = colors[Math.floor(Math.random()*colors.length)];
+        s.style.transform = `translateY(-10px) rotate(${Math.random()*360}deg)`;
+        s.style.top = (-10 - Math.random()*20) + 'px';
+        s.style.opacity = '1';
+        s.style.width = (6 + Math.random()*12) + 'px';
+        s.style.height = (6 + Math.random()*12) + 'px';
+        confettiRoot.appendChild(s);
+        // remove after animation
+        setTimeout(()=> s.remove(), lifetime + Math.random()*600);
+      }
+    }
+
+    // floating emoji for playful effect
+    function spawnEmoji(emoji='🎉', duration=1600){
+      const e = document.createElement('div');
+      e.className = 'float-emoji';
+      e.textContent = emoji;
+      e.style.left = (20 + Math.random()*60) + '%';
+      e.style.top = (40 + Math.random()*10) + '%';
+      e.style.fontSize = (18 + Math.random()*18) + 'px';
+      document.body.appendChild(e);
+      // animate
+      requestAnimationFrame(()=> {
+        e.style.transform = `translateY(-80vh) rotate(${(Math.random()*720-360)}deg)`;
+        e.style.opacity = '0';
+      });
+      setTimeout(()=> e.remove(), duration + 400);
+    }
+
+    // short beep sequence (Web Audio) — optional, harmless tones
+    function playBeepSequence(){
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const freqs = [880, 1100, 1320];
+        freqs.forEach((f, i)=>{
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = 'sine';
+          o.frequency.value = f;
+          g.gain.value = 0.0001;
+          o.connect(g);
+          g.connect(ctx.destination);
+          const t = now + i * 0.12;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.08, t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+          o.start(t);
+          o.stop(t + 0.14);
+        });
+        // close ctx after sounds
+        setTimeout(()=> ctx.close(), 800);
+      }catch(e){
+        // nothing if audio not allowed
+      }
+    }
+
+    // party mode: longer, staged bursts + emojis + sound
+    async function partyMode(duration = 6000){
+      const btn = document.getElementById('btnConfetti');
+      btn.disabled = true;
+      showToast('Fête démarrée ! 🎉', 1500);
+      playBeepSequence();
+      const start = Date.now();
+      // first big burst
+      burstConfetti(40, 80, 2000);
+      // periodic bursts
+      const interval = setInterval(()=>{
+        const elapsed = Date.now() - start;
+        const phase = Math.min(1, elapsed / duration);
+        // decreasing intensity over time
+        const count = Math.floor(8 + (1 - phase) * 40);
+        const spread = 60 + Math.floor(Math.random()*60);
+        burstConfetti(count, spread, 1800);
+        // spawn a couple of emojis
+        spawnEmoji(['🎉','✨','🥳','🎊'][Math.floor(Math.random()*4)]);
+        if(Math.random() > 0.7) playBeepSequence();
+      }, 700);
+
+      // extra finale near end
+      setTimeout(()=> burstConfetti(80, 120, 2200), Math.max(800, duration - 1000));
+
+      // stop after duration
+      setTimeout(()=>{
+        clearInterval(interval);
+        btn.disabled = false;
+        showToast('Fin de la fête ! 🎊', 2200);
+      }, duration);
+    }
+
+    // replace single click with party mode
+    document.getElementById('btnConfetti').addEventListener('click', ()=> { partyMode(7000); });
+
+    // lightweight CSS for confetti particles and emoji (injected)
+    (function injectPartyStyles(){
+      const s = document.createElement('style');
+      s.textContent = `
+        .confetti-particle{position:absolute;border-radius:2px;will-change:transform,opacity;pointer-events:none;animation:fall 1600ms linear forwards}
+        .float-emoji{position:fixed;pointer-events:none;z-index:99999;left:50%;top:50%;transform:translateY(0);transition:transform 1600ms linear, opacity 1200ms ease;opacity:1;font-size:22px}
+      `;
+      document.head.appendChild(s);
+    })();
+
+    // --- Web Serial logic (same as before, integrated) ---
+    connectBtn.addEventListener('click', async () => {
+      if (!('serial' in navigator)) { alert('Web Serial API non supporté. Utilisez Chrome/Edge.'); return; }
+      try {
+        port = await navigator.serial.requestPort();
+        await openPort();
+      } catch (err) {
+        log('Connexion annulée ou erreur: ' + err);
+      }
+    });
+
+    async function openPort(){
+      const baud = parseInt(localStorage.getItem('stepperBaud') || '9600',10) || 9600;
+      await port.open({ baudRate: baud });
+      setStatus('Connecté ('+baud+' bauds)');
+      connectBtn.disabled = true;
+      disconnectBtn.disabled = false;
+      log('Port ouvert');
+      keepReading = true;
+      const decoder = new TextDecoderStream();
+      port.readable.pipeTo(decoder.writable).catch(()=>{});
+      reader = decoder.readable.getReader();
+      readLoop();
+    }
+
+    async function readLoop(){
+      try {
+        let buffer = '';
+        while (keepReading) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += value;
+          let lines = buffer.split(/\r?\n/);
+          buffer = lines.pop();
+          for (const raw of lines) {
+            const line = raw.trim();
+            if (!line) continue;
+            handleLine(line);
+          }
+        }
+      } catch (err) {
+        log('Erreur lecture: ' + err);
+      } finally {
+        closeReader();
+      }
+    }
+
+    function handleLine(line){
+      log('Reçu: ' + line);
+      lastPulseEl.textContent = new Date().toLocaleTimeString();
+
+      const m1 = line.match(/(?:STEP|TOTAL)\s*[:=]\s*(\d+)/i);
+      if (m1) { stepCount = parseInt(m1[1],10); updateCount(); return; }
+      if (/pulse|ils|impulse/i.test(line)) { stepCount++; updateCount(); return; }
+      if (/^\d+$/.test(line)) {
+        const n = parseInt(line,10);
+        if (n === 1 || n === 0) stepCount += n;
+        else if (n > 100000) stepCount = n; // improbable large = total
+        else stepCount += n;
+        updateCount();
+        return;
+      }
+      // other messages shown in log only
+    }
+
+    async function sendCommand(cmd){
+      if (!port || !port.writable) { log('Pas de port ouvert'); return; }
+      try {
+        const writer = port.writable.getWriter();
+        const data = new TextEncoder().encode(cmd + '\n');
+        await writer.write(data);
+        writer.releaseLock();
+        log('Envoyé: ' + cmd);
+      } catch (err) {
+        log('Erreur envoi: ' + err);
+      }
+    }
+
+    disconnectBtn.addEventListener('click', async () => { await disconnectPort(); });
+
+    async function disconnectPort(){
+      keepReading = false;
+      try {
+        if (reader) { await reader.cancel(); reader.releaseLock(); }
+        if (port) await port.close();
+        log('Port fermé');
+      } catch (err) {
+        log('Erreur fermeture: ' + err);
+      } finally {
+        port = null; reader = null;
+        connectBtn.disabled = false; disconnectBtn.disabled = true;
+        setStatus('Déconnecté');
+      }
+    }
+
+    resetLocalBtn.addEventListener('click', () => { stepCount = 0; updateCount(); log('Réinitialisé local'); });
+    resetRemoteBtn.addEventListener('click', () => { sendCommand('RESET'); stepCount = 0; updateCount(); });
+
+    // Export / Import settings like home/settings pages
+    document.getElementById('exportBtn').addEventListener('click', ()=>{
+      const data = {
+        profile: JSON.parse(localStorage.getItem('profileData') || '{}'),
+        settings: JSON.parse(localStorage.getItem('userSettings') || '{}'),
+        avatar: localStorage.getItem('profileAvatar') || null,
+        theme: localStorage.getItem('theme') || 'auto',
+        stepperCount: localStorage.getItem('stepperCount') || '0'
+      };
+      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='settings-stepper.json'; a.click();
+      URL.revokeObjectURL(url);
+      showToast('Export démarré');
+    });
+
+    const defaultSketchText = `#define MAGNETIC_SWITCH 2
+#define LED 13
+
+#include <Arduino.h>
+
+volatile bool pulseFlag = false;
+volatile unsigned long lastIsrMillis = 0;
+unsigned long lastValidPulse = 0;
+const unsigned long debounceMs = 50;
+unsigned long stepCount = 0;
+unsigned long ledOffAt = 0;
+const unsigned long heartbeatInterval = 10000;
+unsigned long lastHeartbeat = 0;
+bool useInterrupt = false;
+int lastSwitchState = HIGH;
+
+void handleInterrupt() {
+  unsigned long now = millis();
+  if (now - lastIsrMillis > 10) {
+    lastIsrMillis = now;
+    pulseFlag = true;
+  }
+}
+
+void flashLed(unsigned long ms = 120) {
+  digitalWrite(LED, HIGH);
+  ledOffAt = millis() + ms;
+}
+
+void countPulse() {
+  unsigned long now = millis();
+  if (now - lastValidPulse >= debounceMs) {
+    lastValidPulse = now;
+    stepCount++;
+    Serial.println("PULSE");
+    Serial.print("STEP:");
+    Serial.println(stepCount);
+    flashLed(120);
+  }
+}
+
+void processSerialCommands() {
+  if (!Serial.available()) return;
+  String cmd = Serial.readStringUntil('\n');
+  cmd.trim();
+  if (cmd.equalsIgnoreCase("RESET")) {
+    stepCount = 0;
+    Serial.println("STEP:0");
+    Serial.println("MSG:RESET OK");
+  } else if (cmd.equalsIgnoreCase("GET")) {
+    Serial.print("TOTAL:");
+    Serial.println(stepCount);
+  } else {
+    Serial.print("MSG:UNKNOWN ");
+    Serial.println(cmd);
+  }
+}
+
+void setup() {
+  pinMode(MAGNETIC_SWITCH, INPUT_PULLUP);
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
+  Serial.begin(9600);
+  delay(100);
+  if (digitalPinToInterrupt(MAGNETIC_SWITCH) != NOT_AN_INTERRUPT) {
+    attachInterrupt(digitalPinToInterrupt(MAGNETIC_SWITCH), handleInterrupt, CHANGE);
+    useInterrupt = true;
+  } else {
+    useInterrupt = false;
+  }
+  lastSwitchState = digitalRead(MAGNETIC_SWITCH);
+  lastHeartbeat = millis();
+}
+
+void loop() {
+  if (useInterrupt) {
+    if (pulseFlag) {
+      pulseFlag = false;
+      countPulse();
+    }
+  } else {
+    int state = digitalRead(MAGNETIC_SWITCH);
+    if (state != lastSwitchState) {
+      lastSwitchState = state;
+      if (state == LOW) {
+        countPulse();
+      }
+    }
+  }
+  if (ledOffAt && millis() >= ledOffAt) {
+    digitalWrite(LED, LOW);
+    ledOffAt = 0;
+  }
+  if (millis() - lastHeartbeat >= heartbeatInterval) {
+    lastHeartbeat = millis();
+    Serial.print("TOTAL:");
+    Serial.println(stepCount);
+  }
+  processSerialCommands();
+  delay(10);
+}`;
+    let importedSketchText = localStorage.getItem('arduinoSketch') || defaultSketchText;
+    function sendSketchToArduino(code){
+      if(!port || !port.writable){ log('Aucun port Arduino ouvert pour envoyer le sketch'); showToast('Connectez l’Arduino avant'); return; }
+      const writer = port.writable.getWriter();
+      const lines = code.split(/\r?\n/);
+      writer.write(new TextEncoder().encode('UPLOAD:START\n'));
+      lines.forEach(line => writer.write(new TextEncoder().encode(line + '\n')));
+      writer.write(new TextEncoder().encode('UPLOAD:END\n'));
+      writer.releaseLock();
+      log('Sketch Arduino envoyé (' + lines.length + ' lignes)');
+      showToast('Sketch Arduino envoyé');
+    }
+
+    function downloadSketchFile(){
+      if(!importedSketchText){ showToast('Chargez d’abord un sketch .ino'); return; }
+      const blob = new Blob([importedSketchText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'Capteur_ILS.ino'; a.click();
+      URL.revokeObjectURL(url);
+      showToast('Sketch téléchargé');
+    }
+
+    document.getElementById('downloadSketchBtn').addEventListener('click', downloadSketchFile);
+
+    document.getElementById('importBtn').addEventListener('click', ()=>{
+      const f = document.createElement('input'); f.type='file'; f.accept='.json,.ino,text/plain,application/json';
+      f.onchange = e=>{
+        const file = e.target.files[0]; if(!file) return;
+        const r = new FileReader();
+        r.onload = ()=>{
+          const text = r.result;
+          if(file.name.toLowerCase().endsWith('.ino')){
+            importedSketchText = text;
+            log('Sketch Arduino chargé depuis ' + file.name);
+            showToast('Sketch Arduino chargé');
+            // store for later action if needed
+            localStorage.setItem('arduinoSketch', text);
+          } else {
+            try{
+              const json = JSON.parse(text);
+              if(json.profile) localStorage.setItem('profileData', JSON.stringify(json.profile));
+              if(json.settings) localStorage.setItem('userSettings', JSON.stringify(json.settings));
+              if(json.avatar) localStorage.setItem('profileAvatar', json.avatar);
+              if(json.theme) localStorage.setItem('theme', json.theme);
+              if(json.stepperCount) { stepCount = parseInt(json.stepperCount,10) || 0; updateCount(); }
+              loadProfileUI();
+              showToast('Import JSON réussi');
+            }catch(err){ showToast('Fichier invalide'); }
+          }
+        };
+        r.readAsText(file);
+      };
+      f.click();
+    });
+
+    document.getElementById('uploadSketchBtn').addEventListener('click', ()=>{
+      if(!importedSketchText){
+        showToast('Chargez d’abord Capteur_ILS.ino avec Import');
+        return;
+      }
+      sendSketchToArduino(importedSketchText);
+    });
+
+    // quick polling to keep sync with settings page
+    let lastSnap = '';
+    function snap(){ return JSON.stringify({
+      p: localStorage.getItem('profileData'),
+      s: localStorage.getItem('userSettings'),
+      a: localStorage.getItem('profileAvatar'),
+      t: localStorage.getItem('theme'),
+      c: localStorage.getItem('stepperCount')
+    });}
+    setInterval(()=>{ const s = snap(); if(s !== lastSnap){ lastSnap = s; loadProfileUI(); } }, 900);
+
+    // init ui
+    (function init(){
+      // apply theme
+      const t = localStorage.getItem('theme') || 'auto';
+      if(t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light');
+      // load profile and last count
+      loadProfileUI();
+      const saved = parseInt(localStorage.getItem('stepperCount') || '0',10) || 0;
+      stepCount = saved;
+      updateCount();
+    })();
+
+    // keep safe cleanup
+    window.addEventListener('beforeunload', async ()=> { if(port) await disconnectPort(); });
+
+  </script>
+  <script src="profile.js"></script>
+  <script>
+    // Create profile header bar
+    createProfileHeader();
+    
+    // Subscribe to profile changes
+    onProfileChange(() => {
+      loadProfileUI();
+      const avatar = document.querySelector('.profile .avatar img');
+      if(avatar) avatar.classList.add('profile-update-pulse');
+      setTimeout(() => avatar?.classList.remove('profile-update-pulse'), 600);
+    });
+  </script>
+</body>
+</html>

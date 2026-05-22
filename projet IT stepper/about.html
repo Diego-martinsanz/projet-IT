@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>À propos — Projet Stepper</title>
+  <link rel="stylesheet" href="css/ui-improvements.css">
+  <link rel="stylesheet" href="css/about.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <div class="title">
+          <div class="icon-xlarge">ℹ️</div>
+          <div>
+            <h1>À propos</h1>
+            <p>Informations sur l'équipe, le projet et comment contribuer</p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="themeBtn" class="btn btn-ghost">🌗 Thème</button>
+          <button id="openHome" class="btn btn-ghost">🏠 Accueil</button>
+          <button id="openSettings" class="btn btn-ghost">⚙️ Paramètres</button>
+          <button id="openStats" class="btn btn-ghost">📊 Stats</button>
+          <button id="exportBtn" class="btn btn-ghost">⬇️ Export</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <aside class="profile">
+          <div class="flex-center">
+            <div class="avatar" id="aboutAvatar"><img id="aboutAvatarImg" src="https://via.placeholder.com/300x300.png?text=User" alt="avatar"></div>
+            <div class="meta">
+              <div class="name" id="aboutName">Équipe Stepper</div>
+              <div class="email" id="aboutEmail">contact@example.com</div>
+              <div class="muted" id="aboutUpdated">Dernière MAJ: —</div>
+            </div>
+          </div>
+
+          <div class="kv mt-12"><div>Version</div><div class="badge" id="appVersion">v0.1</div></div>
+          <div class="kv"><div>Repo</div><div><a id="repoLink" href="#" target="_blank">Voir Git</a></div></div>
+
+          <div class="mt-12">
+            <div class="font-bold mb-6">Contacts</div>
+            <div class="links">
+              <button id="btnContact" class="btn btn-ghost">Contact</button>
+              <button id="btnReport" class="btn btn-ghost">Signaler</button>
+            </div>
+          </div>
+        </aside>
+
+        <main class="panel">
+          <h2>Le projet</h2>
+          <p class="muted mt-8">Ce projet synchronise un capteur ILS (pas) avec une interface web. Il contient :</p>
+          <ul class="muted mt-8">
+            <li>Interface de suivi et paramètres (profil, préférences)</li>
+            <li>Connexion Web Serial pour récupérer les impulsions</li>
+            <li>Export / import de la configuration</li>
+          </ul>
+
+          <div class="flex-wrap-gap mt-14 flex-center">
+            <div class="badge">Prototype</div>
+            <div class="badge">Arduino</div>
+            <div class="badge">Web Serial</div>
+          </div>
+
+          <h3 class="large-heading">Équipe</h3>
+          <div class="team-grid">
+            <div class="member">
+              <h3>Diego Martinsanz</h3>
+              <div class="muted">Développeur front & Arduino — responsable backend</div>
+            </div>
+            <div class="member">
+              <h3>Ethan Rebelo</h3>
+              <div class="muted">Designer UI / UX</div>
+            </div>
+            <div class="member">
+              <h3>Lucas Pelas</h3>
+              <div class="muted">Hardware / capteurs</div>
+            </div>
+            <div class="member">
+              <h3>Milan Jarma</h3>
+              <div class="muted">Intégration & tests</div>
+            </div>
+          </div>
+
+          <h3 class="large-heading">Changelog</h3>
+          <div class="muted note">
+            v0.1 — Prototype & UI améliorée · suivi pas via ILS · import/export · thèmes · profils.<br>
+            v0.2 — Ajout Stepper dashboard, confettis & milestones.
+          </div>
+
+          <div class="flex-wrap-gap mt-16">
+            <button id="openStepper" class="btn btn-primary">🔀 Ouvrir Stepper</button>
+            <button id="openGuide" class="btn btn-ghost">📖 Guide rapide</button>
+            <button id="openContrib" class="btn btn-ghost">🤝 Contribuer</button>
+          </div>
+
+          <div class="note mt-12">Les paramètres sont partagés entre les pages via localStorage — modifiez-les depuis Paramètres.</div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="profile.js"></script>
+  <script>
+    const toast = document.getElementById('toast');
+    function showToast(msg, t=2200){ toast.textContent = msg; toast.style.display='block'; setTimeout(()=>toast.style.display='none', t); }
+
+    // UI refs
+    const aboutAvatarImg = document.getElementById('aboutAvatarImg');
+    const aboutName = document.getElementById('aboutName');
+    const aboutEmail = document.getElementById('aboutEmail');
+    const aboutUpdated = document.getElementById('aboutUpdated');
+    const repoLink = document.getElementById('repoLink');
+    const appVersion = document.getElementById('appVersion');
+
+    function loadAbout(){
+      const p = JSON.parse(localStorage.getItem('profileData') || '{}');
+      const s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+      const av = localStorage.getItem('profileAvatar');
+      if(av) aboutAvatarImg.src = av;
+      if(p.firstName || p.lastName) aboutName.textContent = ((p.firstName||'') + ' ' + (p.lastName||'')).trim();
+      if(p.email) aboutEmail.textContent = p.email;
+      aboutUpdated.textContent = p.updated ? ('Dernière MAJ: ' + new Date(p.updated).toLocaleString()) : 'Dernière MAJ: —';
+      appVersion.textContent = 'v0.2';
+      repoLink.href = '#'; // remplacer par repo réel si disponible
+    }
+
+    document.getElementById('openHome').addEventListener('click', ()=> location.href='home.html');
+    document.getElementById('openSettings').addEventListener('click', ()=> location.href='settings.html');
+    document.getElementById('openStats').addEventListener('click', ()=> location.href='stats.html');
+    document.getElementById('openStepper').addEventListener('click', ()=> location.href='stepper.html');
+    document.getElementById('openGuide').addEventListener('click', ()=> { 
+      // navigue vers la page guide (guide.html)
+      window.location.href = 'guide.html';
+    });
+    document.getElementById('openContrib').addEventListener('click', ()=> { showToast('Merci de vouloir contribuer — contactez l\'équipe.'); });
+    document.getElementById('btnContact').addEventListener('click', ()=> { window.location.href = 'mailto:contact@example.com'; });
+    document.getElementById('btnReport').addEventListener('click', ()=> { showToast('Signalement (simulation)'); });
+
+    document.getElementById('exportBtn').addEventListener('click', ()=>{
+      const data = {
+        profile: JSON.parse(localStorage.getItem('profileData')||'{}'),
+        settings: JSON.parse(localStorage.getItem('userSettings')||'{}'),
+        avatar: localStorage.getItem('profileAvatar') || null,
+        theme: localStorage.getItem('theme') || 'auto'
+      };
+      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='about-export.json'; a.click();
+      URL.revokeObjectURL(url);
+      showToast('Export démarré');
+    });
+
+    // theme button cycles
+    document.getElementById('themeBtn').addEventListener('click', ()=>{
+      const cur = localStorage.getItem('theme') || 'auto';
+      const next = cur === 'auto' ? 'dark' : cur === 'dark' ? 'light' : 'auto';
+      if(next === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', next === 'dark' ? 'dark' : 'light');
+      localStorage.setItem('theme', next);
+      showToast('Thème: ' + next);
+      loadAbout();
+    });
+
+    // Apply theme
+    (function init(){
+      const t = localStorage.getItem('theme') || 'auto';
+      if(t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light');
+    })();
+    
+    // Create profile header
+    createProfileHeader();
+    
+    // Subscribe to profile changes
+    onProfileChange(() => {
+      loadAbout();
+      const avatar = document.querySelector('.avatar img');
+      if(avatar) avatar.classList.add('profile-update-pulse');
+      setTimeout(() => avatar?.classList.remove('profile-update-pulse'), 600);
+    });
+
+    // keep in sync with settings
+    let lastSnap = '';
+    function snap(){ return JSON.stringify({ p: localStorage.getItem('profileData'), s: localStorage.getItem('userSettings'), a: localStorage.getItem('profileAvatar'), t: localStorage.getItem('theme') });}
+    setInterval(()=>{ const s = snap(); if(s !== lastSnap){ lastSnap = s; loadAbout(); } }, 900);
+
+    loadAbout();
+  </script>
+</body>
+</html>
