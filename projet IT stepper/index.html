@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accueil — Profil</title>
+  <link rel="stylesheet" href="css/ui-improvements.css">
+  <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <div class="title">
+          <div class="icon-large">🏠</div>
+          <div>
+            <h1>Accueil</h1>
+            <p>Accédez rapidement à vos infos, préférences et au tableau Stepper.</p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="themeBtn" class="btn btn-ghost">🌗 Thème</button>
+          <button id="openSettings" class="btn btn-ghost">⚙️ Paramètres</button>
+          <button id="openStats" class="btn btn-ghost">📊 Stats</button>
+          <button id="openAbout" class="btn btn-ghost">ℹ️ À propos</button>
+          <button id="exportBtn" class="btn btn-ghost">⬇️ Export</button>
+          <button id="openStepper" class="btn btn-ghost">🔀 Stepper</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <aside class="left">
+          <div class="profile-card">
+            <div class="avatar" id="homeAvatar">
+              <img src="https://via.placeholder.com/300x300.png?text=User" alt="avatar" id="homeAvatarImg">
+            </div>
+            <div class="meta">
+              <div class="name" id="homeName">Utilisateur</div>
+              <div class="email" id="homeEmail">email@example.com</div>
+              <div class="small" id="homeUpdated">Dernière MAJ: —</div>
+              <div class="mt-8">
+                <button class="btn btn-primary" id="editProfile">Modifier profil</button>
+                <button class="btn btn-ghost" id="logout">Quitter</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-block">
+            <div class="flex-space-between">
+              <div class="font-bold">Préférences</div>
+              <div class="small" id="homeTheme">Thème: auto</div>
+            </div>
+
+            <div class="kv"><div>Langue</div><div id="homeLang" class="accent">—</div></div>
+            <div class="kv"><div>Fuseau</div><div id="homeTZ" class="accent">—</div></div>
+            <div class="kv"><div>Notif E-mail</div><div id="homeEmailNotif"><span class="chip"><span id="dotEmail" class="status-dot status-off"></span><span id="lblEmail">—</span></span></div></div>
+            <div class="kv"><div>Push</div><div id="homePushNotif"><span class="chip"><span id="dotPush" class="status-dot status-off"></span><span id="lblPush">—</span></span></div></div>
+            <div class="notice">Les modifications se synchronisent avec la page Paramètres.</div>
+          </div>
+        </aside>
+
+        <main class="panel">
+          <h2>Infos supplémentaires</h2>
+          <div class="notice mt-10">Démarrage rapide : 1) Vérifiez votre profil 2) Ouvrez Stepper 3) Connectez votre Arduino.</div>
+
+          <div class="grid mt-12">
+            <div class="card-block">
+              <div class="font-bold">Bio</div>
+              <div class="notice" id="homeBio">—</div>
+            </div>
+
+            <div class="card-block">
+              <div class="font-bold">Téléphone</div>
+              <div class="notice" id="homePhone">—</div>
+            </div>
+
+            <div class="card-block">
+              <div class="font-bold">Statut de sécurité</div>
+              <div class="mt-8">
+                <div id="pwStatus" class="notice">Mot de passe: —</div>
+                <div class="mt-8">
+                  <button class="btn btn-ghost" id="changePassword">Changer le mot de passe</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-block">
+              <div class="font-bold">Actions rapides</div>
+              <div class="quick-actions">
+                <button class="btn btn-ghost" id="gotoAppearance">Apparence</button>
+                <button class="btn btn-ghost" id="gotoSecurity">Sécurité</button>
+                <button class="btn btn-ghost" id="importBtn">📁 Importer config / sketch</button>
+                <button class="btn btn-ghost" id="gotoStepper">Ouvrir Stepper</button>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="profile.js"></script>
+  <script>
+    const toast = document.getElementById('toast');
+    function showToast(msg, t=2200){ toast.textContent = msg; toast.style.display='block'; setTimeout(()=>toast.style.display='none', t); }
+
+    // Elements
+    const homeAvatarImg = document.getElementById('homeAvatarImg');
+    const homeName = document.getElementById('homeName');
+    const homeEmail = document.getElementById('homeEmail');
+    const homeUpdated = document.getElementById('homeUpdated');
+    const homeLang = document.getElementById('homeLang');
+    const homeTZ = document.getElementById('homeTZ');
+    const homeBio = document.getElementById('homeBio');
+    const homePhone = document.getElementById('homePhone');
+    const homeTheme = document.getElementById('homeTheme');
+    const dotEmail = document.getElementById('dotEmail');
+    const lblEmail = document.getElementById('lblEmail');
+    const dotPush = document.getElementById('dotPush');
+    const lblPush = document.getElementById('lblPush');
+    const pwStatus = document.getElementById('pwStatus');
+
+    // Load values from localStorage (keeps in sync with settings.html)
+    function loadHome(){
+      const p = JSON.parse(localStorage.getItem('profileData') || '{}');
+      const s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+      const av = localStorage.getItem('profileAvatar');
+      const theme = localStorage.getItem('theme') || 'auto';
+
+      if(av) homeAvatarImg.src = av;
+      if(p.firstName || p.lastName) homeName.textContent = ((p.firstName||'') + ' ' + (p.lastName||'')).trim() || 'Utilisateur';
+      if(p.email) homeEmail.textContent = p.email;
+      homeBio.textContent = p.bio || '—';
+      homePhone.textContent = p.phone || '—';
+      homeUpdated.textContent = p.updated ? ('Dernière MAJ: ' + new Date(p.updated).toLocaleString()) : 'Dernière MAJ: —';
+
+      homeLang.textContent = s.language || 'fr';
+      homeTZ.textContent = s.timezone || 'Europe/Paris';
+      homeTheme.textContent = 'Thème: ' + theme;
+
+      const emailOn = !!s.emailNotif;
+      const pushOn = !!s.pushNotif;
+      dotEmail.className = 'status-dot ' + (emailOn ? 'status-on' : 'status-off');
+      dotPush.className = 'status-dot ' + (pushOn ? 'status-on' : 'status-off');
+      lblEmail.textContent = emailOn ? 'Activé' : 'Désactivé';
+      lblPush.textContent = pushOn ? 'Activé' : 'Désactivé';
+
+      // password strength hint
+      const newP = localStorage.getItem('lastPasswordStrength') || '';
+      pwStatus.textContent = newP ? ('Mot de passe: ' + newP) : 'Mot de passe: Non évalué';
+    }
+
+    // Buttons / navigation
+    document.getElementById('openSettings').addEventListener('click', ()=> {
+      window.location.href = 'settings.html';
+    });
+    document.getElementById('openStats').addEventListener('click', ()=> {
+      window.location.href = 'stats.html';
+    });
+    // Open about page
+    document.getElementById('openAbout').addEventListener('click', ()=> {
+      window.location.href = 'about.html';
+    });
+    // Open stepper page (new button)
+    const tryOpenStepper = (target='stepper.html')=>{
+      // navigate to the stepper page (create stepper.html in project if not present)
+      window.location.href = target;
+    };
+    document.getElementById('openStepper').addEventListener('click', ()=> tryOpenStepper());
+    document.getElementById('gotoStepper').addEventListener('click', ()=> tryOpenStepper());
+    document.getElementById('editProfile').addEventListener('click', ()=> {
+      window.location.href = 'settings.html#profile';
+    });
+    document.getElementById('gotoAppearance').addEventListener('click', ()=> {
+      window.location.href = 'settings.html#appearance';
+    });
+    document.getElementById('gotoSecurity').addEventListener('click', ()=> {
+      window.location.href = 'settings.html#security';
+    });
+    document.getElementById('changePassword').addEventListener('click', ()=> {
+      window.location.href = 'settings.html#security';
+    });
+
+    // Theme toggle quick button (cycles)
+    document.getElementById('themeBtn').addEventListener('click', ()=> {
+      const current = localStorage.getItem('theme') || 'auto';
+      const next = current === 'auto' ? 'dark' : current === 'dark' ? 'light' : 'auto';
+      if(next === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', next === 'dark' ? 'dark' : 'light');
+      localStorage.setItem('theme', next);
+      loadHome();
+      showToast('Thème: ' + next);
+    });
+
+    // Import / Export from home
+    document.getElementById('exportBtn').addEventListener('click', ()=> {
+      const data = {
+        profile: JSON.parse(localStorage.getItem('profileData')||'{}'),
+        settings: JSON.parse(localStorage.getItem('userSettings')||'{}'),
+        avatar: localStorage.getItem('profileAvatar') || null,
+        theme: localStorage.getItem('theme') || 'auto'
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'settings.json'; a.click();
+      URL.revokeObjectURL(url);
+      showToast('Export démarré');
+    });
+
+    document.getElementById('importBtn').addEventListener('click', ()=> {
+      const f = document.createElement('input'); f.type='file'; f.accept='.json,.ino,application/json,text/plain';
+      f.onchange = e=>{
+        const file = e.target.files[0]; if(!file) return;
+        const r = new FileReader();
+        r.onload = ()=> {
+          const text = r.result;
+          if(file.name.toLowerCase().endsWith('.ino')){
+            localStorage.setItem('arduinoSketch', text);
+            showToast('Sketch Arduino chargé');
+            return;
+          }
+          try{
+            const json = JSON.parse(text);
+            if(json.profile) localStorage.setItem('profileData', JSON.stringify(json.profile));
+            if(json.settings) localStorage.setItem('userSettings', JSON.stringify(json.settings));
+            if(json.avatar) localStorage.setItem('profileAvatar', json.avatar);
+            if(json.theme) localStorage.setItem('theme', json.theme);
+            loadHome();
+            showToast('Import réussi');
+          }catch(er){ showToast('Fichier invalide'); }
+        };
+        r.readAsText(file);
+      };
+      f.click();
+    });
+
+    // Simulated logout (clears UI only)
+    document.getElementById('logout').addEventListener('click', ()=> {
+      showToast('Déconnexion (simulation)');
+    });
+
+    // Keep in sync when settings page updates localStorage: poll short interval
+    let lastSnapshot = '';
+    function snapshot(){ return JSON.stringify({
+      p: localStorage.getItem('profileData'),
+      s: localStorage.getItem('userSettings'),
+      a: localStorage.getItem('profileAvatar'),
+      t: localStorage.getItem('theme'),
+      pw: localStorage.getItem('lastPasswordStrength')
+    });}
+    function checkSync(){
+      const snap = snapshot();
+      if(snap !== lastSnapshot){ lastSnapshot = snap; loadHome(); }
+    }
+    setInterval(checkSync, 900);
+
+    // initial
+    // apply theme saved
+    (function applyInitTheme(){
+      const t = localStorage.getItem('theme') || 'auto';
+      if(t === 'auto') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+    })();
+    
+    // Create profile header bar
+    createProfileHeader();
+    
+    // Subscribe to profile changes
+    onProfileChange(() => {
+      loadHome();
+      const avatar = document.querySelector('.avatar img');
+      if(avatar) avatar.classList.add('profile-update-pulse');
+      setTimeout(() => avatar?.classList.remove('profile-update-pulse'), 600);
+    });
+    
+    loadHome();
+  </script>
+</body>
+</html>
